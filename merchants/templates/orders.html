@@ -1,0 +1,290 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Orders
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+.order-card{
+    border-radius:18px;
+}
+
+.summary-number{
+    font-size:1.8rem;
+    font-weight:700;
+}
+
+.status-badge{
+    font-size:.8rem;
+}
+
+.filter-card{
+    border-radius:18px;
+}
+
+.table td,
+.table th{
+    vertical-align:middle;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="page-title">
+            Orders
+        </h2>
+
+        <div class="page-subtitle">
+            Manage incoming orders
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FILTERS -->
+
+<div class="card filter-card mb-4">
+
+    <div class="card-body">
+
+        <form method="GET">
+
+            <div class="row align-items-end g-2">
+
+                <div class="col-md-3">
+            
+                    <label class="form-label">
+                        Search
+                    </label>
+            
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Customer, phone, order id"
+                        value="{{ search }}"
+                    >
+            
+                </div>
+            
+                <div class="col-md-2">
+            
+                    <label class="form-label">
+                        Status
+                    </label>
+            
+                    <select
+                        name="status"
+                        class="form-select">
+            
+                        <option value="">
+                            All Statuses
+                        </option>
+            
+                        <option value="awaiting_stock_check">
+                            Awaiting Stock Check
+                        </option>
+            
+                        <option value="approved_awaiting_payment">
+                            Awaiting Payment
+                        </option>
+            
+                        <option value="paid_ready_to_ship">
+                            Ready To Ship
+                        </option>
+            
+                        <option value="cancelled">
+                            Cancelled
+                        </option>
+            
+                    </select>
+            
+                </div>
+            
+                <div class="col-md-2">
+            
+                    <label class="form-label">
+                        From
+                    </label>
+            
+                    <input
+                        type="date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ start_date }}"
+                    >
+            
+                </div>
+            
+                <div class="col-md-2">
+            
+                    <label class="form-label">
+                        To
+                    </label>
+            
+                    <input
+                        type="date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ end_date }}"
+                    >
+            
+                </div>
+            
+                <div class="col-md-3">
+            
+                    <button
+                        type="submit"
+                        class="btn btn-dark w-100">
+            
+                        Filter
+            
+                    </button>
+            
+                </div>
+            
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ORDERS TABLE -->
+
+<div class="card order-card">
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover mb-0">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for order in orders %}
+
+                    <tr>
+
+                        <td>
+                            #{{ order.id }}
+                        </td>
+
+                        <td>
+                            {{ order.customer_name }}
+                        </td>
+
+                        <td>
+                            {{ order.customer_phone }}
+                        </td>
+
+                        <td>
+                            ৳{{ order.total_amount }}
+                        </td>
+
+                        <td>
+
+                            {% if order.order_status == 'awaiting_stock_check' %}
+
+                                <span class="badge bg-warning text-dark status-badge">
+                                    Pending Stock Check
+                                </span>
+
+                            {% elif order.order_status == 'approved_awaiting_payment' %}
+
+                                <span class="badge bg-info status-badge">
+                                    Awaiting Payment
+                                </span>
+
+                            {% elif order.order_status == 'paid_ready_to_ship' %}
+
+                                <span class="badge bg-success status-badge">
+                                    Ready To Ship
+                                </span>
+
+                            {% elif order.order_status == 'cancelled' %}
+
+                                <span class="badge bg-danger status-badge">
+                                    Cancelled
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary status-badge">
+                                    {{ order.order_status }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ order.created_at|date:"d M Y, h:i A" }}
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'order_details' order.id %}"
+                                class="btn btn-outline-primary btn-sm">
+
+                                View
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="7"
+                            class="text-center py-5">
+
+                            No orders found.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

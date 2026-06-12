@@ -1,0 +1,339 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Complete Payment
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-7">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="text-center mb-4">
+
+                        <h2 class="fw-bold">
+                            Complete Your Payment
+                        </h2>
+
+                        <p class="text-muted mb-0">
+                            Order #{{ order.id }}
+                        </p>
+
+                    </div>
+
+                    <!-- Expiry Timer -->
+
+                    <div class="alert alert-warning text-center">
+
+                        <strong>
+                            Payment Link Expires In
+                        </strong>
+
+                        <div
+                            id="countdown"
+                            class="fs-3 fw-bold mt-2">
+
+                            Loading...
+
+                        </div>
+
+                    </div>
+
+                    <!-- Order Summary -->
+
+                    <div class="card bg-light border-0 mb-4">
+
+                        <div class="card-body">
+
+                            <h5 class="mb-3">
+
+                                Order Summary
+
+                            </h5>
+
+                            <div class="row">
+
+                                <div class="col-5 fw-semibold">
+                                    Customer
+                                </div>
+
+                                <div class="col-7">
+                                    {{ order.customer_name }}
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <div class="row">
+
+                                <div class="col-5 fw-semibold">
+                                    Phone
+                                </div>
+
+                                <div class="col-7">
+                                    {{ order.customer_phone }}
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <div class="row">
+
+                                <div class="col-5 fw-semibold">
+                                    Items
+                                </div>
+
+                                <div class="col-7">
+                                    {{ order.order_items }}
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <div class="row">
+
+                                <div class="col-5 fw-semibold">
+                                    Total Amount
+                                </div>
+
+                                <div class="col-7">
+
+                                    <span class="fs-4 fw-bold text-success">
+
+                                        ৳{{ order.total_amount }}
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Payment Instructions -->
+
+                    <div class="alert alert-primary">
+
+                        <h5 class="fw-bold">
+
+                            Payment Instructions
+
+                        </h5>
+
+                        <hr>
+
+                        <p>
+
+                            Send exactly
+
+                            <strong>
+                                ৳{{ order.total_amount }}
+                            </strong>
+
+                            using bKash.
+
+                        </p>
+
+                        <div class="input-group mb-3">
+
+                            <input
+                                type="text"
+                                id="paymentNumber"
+                                class="form-control fw-bold"
+                                value="{{ order.merchant.mfs_payment_number }}"
+                                readonly
+                            >
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary"
+                                onclick="copyNumber()">
+
+                                Copy
+
+                            </button>
+
+                        </div>
+
+                        <small class="text-muted">
+
+                            After payment, enter your Transaction ID below.
+
+                        </small>
+
+                    </div>
+
+                    <!-- Transaction Form -->
+
+                    <form method="POST" action="{% url 'submit_payment' order.payment_link_token %}">
+
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+
+                            <label
+                                class="form-label fw-semibold">
+
+                                Transaction ID (TxnID)
+
+                            </label>
+
+                            <input
+                                type="text"
+                                name="trx_id"
+                                class="form-control form-control-lg"
+                                placeholder="Example: 8A7BC123XY"
+                                required
+                            >
+
+                            <div class="form-text">
+
+                                Enter the exact Transaction ID received from bKash.
+
+                            </div>
+
+                        </div>
+
+                        <div class="d-grid">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success btn-lg">
+
+                                Submit Transaction ID
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                    <!-- Trust Section -->
+
+                    <div class="mt-4 text-center">
+
+                        <small class="text-muted">
+
+                            Your payment goes directly to the merchant.
+                            <br>
+                            Powered by KineticPay
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function copyNumber() {
+
+    const input =
+        document.getElementById(
+            "paymentNumber"
+        );
+
+    navigator.clipboard.writeText(
+        input.value
+    );
+
+    alert(
+        "Payment number copied!"
+    );
+}
+
+
+const expiryTime =
+    new Date(
+        "{{ order.payment_link_expires_at|date:'c' }}"
+    ).getTime();
+
+
+const countdown =
+    document.getElementById(
+        "countdown"
+    );
+
+
+const timer =
+    setInterval(
+        function(){
+
+            const now =
+                new Date().getTime();
+
+            const distance =
+                expiryTime - now;
+
+            if(distance <= 0){
+
+                clearInterval(
+                    timer
+                );
+
+                countdown.innerHTML =
+                    "EXPIRED";
+
+                countdown.classList.add(
+                    "text-danger"
+                );
+
+                return;
+            }
+
+            const hours =
+                Math.floor(
+                    distance /
+                    (1000 * 60 * 60)
+                );
+
+            const minutes =
+                Math.floor(
+                    (
+                        distance %
+                        (1000 * 60 * 60)
+                    ) /
+                    (1000 * 60)
+                );
+
+            const seconds =
+                Math.floor(
+                    (
+                        distance %
+                        (1000 * 60)
+                    ) /
+                    1000
+                );
+
+            countdown.innerHTML =
+                `${hours}h ${minutes}m ${seconds}s`;
+
+        },
+        1000
+    );
+
+</script>
+
+
+
+{% endblock %}

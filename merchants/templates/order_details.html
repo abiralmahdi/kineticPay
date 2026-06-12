@@ -1,0 +1,368 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Order #{{ order.id }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+.info-card{
+    border-radius:20px;
+}
+
+.status-box{
+    border-radius:16px;
+    padding:15px;
+    font-weight:600;
+}
+
+.order-image{
+    width:100%;
+    height:220px;
+    object-fit:cover;
+    border-radius:12px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h2 class="page-title">
+            Order #{{ order.id }}
+        </h2>
+
+        <div class="page-subtitle">
+
+            Created on
+            {{ order.created_at|date:"d M Y H:i" }}
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row">
+
+    <!-- LEFT COLUMN -->
+
+    <div class="col-lg-8">
+
+        <!-- CUSTOMER INFO -->
+
+        <div class="card info-card mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Customer Information
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+
+                    <strong>Name</strong>
+
+                    <div>
+                        {{ order.customer_name }}
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <strong>Phone</strong>
+
+                    <div>
+                        {{ order.customer_phone }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <strong>Delivery Address</strong>
+
+                    <div>
+                        {{ order.delivery_address|linebreaks }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ORDER ITEMS -->
+
+        <div class="card info-card mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Order Details
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <pre style="white-space:pre-wrap;font-family:inherit;">
+{{ order.order_items }}
+                </pre>
+
+            </div>
+
+        </div>
+
+        <!-- IMAGES -->
+
+        <div class="card info-card">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Product Images
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    {% for image in order.images.all %}
+
+                    <div class="col-md-4 mb-3">
+
+                        <a
+                            href="{{ image.image.url }}"
+                            target="_blank">
+
+                            <img
+                                src="{{ image.image.url }}"
+                                class="order-image">
+
+                        </a>
+
+                    </div>
+
+                    {% empty %}
+
+                    <div class="col-12">
+
+                        <p class="text-muted mb-0">
+
+                            No images uploaded.
+
+                        </p>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+
+    <div class="col-lg-4">
+
+        <!-- STATUS -->
+
+        <div class="card info-card mb-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Order Status
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                {% if order.order_status == 'awaiting_stock_check' %}
+
+                    <div class="alert alert-warning">
+
+                        Awaiting Stock Check
+
+                    </div>
+
+                {% elif order.order_status == 'approved_awaiting_payment' %}
+
+                    <div class="alert alert-info">
+
+                        Awaiting Customer Payment
+
+                    </div>
+
+                {% elif order.order_status == 'paid_ready_to_ship' %}
+
+                    <div class="alert alert-success">
+
+                        Ready To Ship
+
+                    </div>
+
+                {% elif order.order_status == 'cancelled' %}
+
+                    <div class="alert alert-danger">
+
+                        Cancelled
+
+                    </div>
+
+                {% elif order.order_status == 'expired' %}
+
+                    <div class="alert alert-secondary">
+
+                        Payment Link Expired
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    
+
+        <!-- ACTIONS -->
+
+        <div class="card info-card">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0">
+                    Actions
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                {% if order.order_status == 'awaiting_stock_check' %}
+
+                    <div class="d-grid gap-2">
+
+                        <form
+                            method="POST"
+                            action="{% url 'approve_order' order.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <label class="form-label">
+
+                                Final Invoice Amount
+
+                            </label>
+                            ৳
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="1"
+                                name="total_amount"
+                                class="form-control mb-3"
+                                required
+                                value="{{ order.total_amount }}"
+                            >
+
+                            <button
+                                type="submit"
+                                class="btn btn-success w-100"
+                            >
+                                Approve Order
+                            </button>
+
+                        </form>
+
+                        <form
+                            method="POST"
+                            action="{% url 'reject_order' order.id %}"
+                            class="mt-2"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger w-100"
+                            >
+                                Reject Order
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                {% elif order.order_status == 'approved_awaiting_payment' %}
+
+                    <div class="d-grid">
+
+                        <button
+                            class="btn btn-info"
+                            disabled>
+
+                            Awaiting Payment
+
+                        </button>
+
+                    </div>
+
+                {% elif order.order_status == 'paid_ready_to_ship' %}
+
+                    <div class="d-grid">
+
+                        <button
+                            class="btn btn-success"
+                            disabled>
+
+                            Ready To Ship
+
+                        </button>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="d-grid">
+
+                        <button
+                            class="btn btn-secondary"
+                            disabled>
+
+                            No Actions Available
+
+                        </button>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

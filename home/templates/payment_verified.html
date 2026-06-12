@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Payment Verified
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-lg">
+
+                <div class="card-body text-center p-5">
+
+                    <div class="mb-4">
+
+                        <i
+                            class="bi bi-patch-check-fill text-success"
+                            style="font-size: 5rem;">
+                        </i>
+
+                    </div>
+
+                    <h1 class="fw-bold text-success mb-3">
+                        Payment Verified
+                    </h1>
+
+                    <p class="lead text-muted mb-4">
+
+                        Your payment has been successfully verified.
+
+                    </p>
+
+                    {% if order %}
+
+                    <div class="alert alert-success text-start">
+
+                        <div class="mb-2">
+
+                            <strong>
+                                Order ID:
+                            </strong>
+
+                            #{{ order.id }}
+
+                        </div>
+
+                        <div class="mb-2">
+
+                            <strong>
+                                Amount Paid:
+                            </strong>
+
+                            ৳{{ order.total_amount }}
+
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Status:
+                            </strong>
+
+                            Ready To Ship
+
+                        </div>
+
+                    </div>
+
+                    {% endif %}
+
+                    <div class="mt-4">
+
+                        <p class="text-muted mb-0">
+
+                            The merchant has been notified and your order
+                            is now being prepared for shipment.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

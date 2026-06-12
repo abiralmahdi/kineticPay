@@ -1,0 +1,302 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Subscription Plans
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+
+.plan-card{
+    transition:.3s;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
+}
+
+.plan-card:hover{
+    transform:translateY(-8px);
+}
+
+.plan-price{
+    font-size:3rem;
+    font-weight:700;
+    color:#0d6efd;
+}
+
+.plan-name{
+    font-size:1.6rem;
+    font-weight:700;
+}
+
+.feature-item{
+    margin-bottom:12px;
+}
+
+.feature-icon{
+    color:green;
+}
+
+.recommended{
+    border:3px solid #0d6efd;
+}
+
+.popular-badge{
+    position:absolute;
+    right:20px;
+    top:20px;
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-5">
+
+    <h1 class="page-title">
+        Choose Your Subscription
+    </h1>
+
+    <p class="page-subtitle">
+        Select the plan that fits your business needs.
+    </p>
+
+</div>
+
+<div class="d-flex justify-content-center mb-5">
+
+    <div class="btn-group shadow-sm">
+
+        <input
+            type="radio"
+            class="btn-check"
+            name="billing"
+            id="monthly"
+            checked
+        >
+
+        <label
+            class="btn btn-outline-primary"
+            for="monthly">
+            Monthly
+        </label>
+
+        <input
+            type="radio"
+            class="btn-check"
+            name="billing"
+            id="yearly"
+        >
+
+        <label
+            class="btn btn-outline-primary"
+            for="yearly">
+            Yearly
+            <span class="badge bg-success">
+                Save 20%
+            </span>
+        </label>
+
+    </div>
+
+</div>
+
+
+<div class="row g-4">
+
+    {% for plan in plans %}
+
+    <div class="col-lg-4">
+
+        <div class="card plan-card h-100 {% if plan.code == 'business' %}recommended{% endif %}">
+
+            {% if plan.code == 'business' %}
+            <span class="badge bg-primary popular-badge">
+                Most Popular
+            </span>
+            {% endif %}
+
+            <div class="card-body p-4">
+
+                <h3 class="plan-name text-center">
+                    {{ plan.name }}
+                </h3>
+
+                <div class="text-center my-4">
+
+                    <div class="monthly-price">
+                
+                        <span class="plan-price">
+                            ৳{{ plan.monthly_price }}
+                        </span>
+                
+                        <div class="text-muted">
+                            per month
+                        </div>
+                
+                    </div>
+                
+                    <div class="yearly-price d-none">
+                
+                        <span class="plan-price">
+                            ৳{{ plan.monthly_price|floatformat:0 }}
+                        </span>
+                
+                        <div class="small text-muted mb-2">
+                            × 12 months
+                        </div>
+                
+                        <div
+                            class="h4 text-success fw-bold"
+                            data-yearly-price="{{ plan.monthly_price }}">
+                        </div>
+                
+                        <div class="text-muted">
+                            per year
+                        </div>
+                
+                    </div>
+                
+                </div>
+
+                <hr>
+
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill feature-icon"></i>
+                    {% if not plan.unlimited %}
+                    {{ plan.max_orders_per_month }} Orders / Month
+                    {% else %}
+                    Unlimited Orders / Month
+                    {% endif %}
+                </div>
+
+                <form method="POST" class="mt-4">
+
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="billing_cycle"
+                        class="billing-cycle-input"
+                        value="monthly"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="plan_id"
+                        value="{{ plan.id }}"
+                    >
+                    <input type="hidden" name="billing_cycle" id="billing_cycle_{{ plan.id }}" value="monthly">
+
+                    <div class="d-grid">
+
+                        {% if active_subscription and active_subscription.plan.id == plan.id %}
+                    
+                            <button
+                                type="button"
+                                class="btn btn-success btn-lg"
+                                disabled>
+                    
+                                Current Plan
+                    
+                            </button>
+                    
+                        {% else %}
+                    
+                            <button
+                                type="submit"
+                                class="btn btn-primary btn-lg">
+                    
+                                Select Plan
+                    
+                            </button>
+                    
+                        {% endif %}
+                    
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+    
+        const monthlyBtn = document.getElementById('monthly');
+        const yearlyBtn = document.getElementById('yearly');
+    
+        const monthlyPrices =
+            document.querySelectorAll('.monthly-price');
+    
+        const yearlyPrices =
+            document.querySelectorAll('.yearly-price');
+    
+        const billingInputs =
+            document.querySelectorAll('.billing-cycle-input');
+    
+        document.querySelectorAll('[data-yearly-price]')
+            .forEach(element => {
+    
+                let monthly =
+                    parseFloat(
+                        element.dataset.yearlyPrice
+                    );
+    
+                let yearly =
+                    (monthly * 12 * 0.8);
+    
+                element.innerHTML =
+                    "৳" + yearly.toFixed(0);
+            });
+    
+        monthlyBtn.addEventListener('change', () => {
+    
+            monthlyPrices.forEach(
+                el => el.classList.remove('d-none')
+            );
+    
+            yearlyPrices.forEach(
+                el => el.classList.add('d-none')
+            );
+    
+            billingInputs.forEach(
+                input => input.value = 'monthly'
+            );
+        });
+    
+        yearlyBtn.addEventListener('change', () => {
+    
+            monthlyPrices.forEach(
+                el => el.classList.add('d-none')
+            );
+    
+            yearlyPrices.forEach(
+                el => el.classList.remove('d-none')
+            );
+    
+            billingInputs.forEach(
+                input => input.value = 'yearly'
+            );
+        });
+    
+    });
+    
+    </script>
+
+    
+{% endblock %}
